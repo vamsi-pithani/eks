@@ -1,0 +1,3 @@
+resources-
+kalyanreddy -udemy
+https://github.com/stacksimplify/aws-eks-kubernetes-masterclass
