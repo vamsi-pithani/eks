@@ -1,0 +1,77 @@
+step1 :
+
+ 1. install eksctcl
+	eksctl version
+ 2. install aws cli
+ 3. install kubectl
+
+aws configure (get security credentials from IAM user)
+ 
+verify login by checking default vpc used by ec2 in default region using aws ec2 describe-vpcs
+
+step2:
+
+ekscluster
+	eks control plane:contains kubernetes master components like etcd, api server, managed service by AWS
+	workernodes/node groups: group of ec2 instances where run our app workloads.
+	Fargate profiles:instead of ec2, we run our app worloads on serverless fargate profiles.
+	VPC:with aws vpc we follow secure networking standards which will allow us to run production workloads on eks
+
+provison eks cluster ----> deploy worker nodes ---> connect  to eks ---> deploy apps
+
+1. creation of eks:
+command for linux (\) add ` for windows are write as single command
+eksctl create cluster --name=eksdemo1 ` 
+		      --region=us-east-1 `
+		      --zones=us-east-1a,us-east-1b `
+		      --without-nodegroup
+
+if we didn't mention --without-nodegroup it will auto provsion nodes of random large sizes
+
+in windows terminal:
+eksctl create cluster --name=eksdemo1 --region=us-east-1 --zones=us-east-1a,us-east-1b --without-nodegroup
+
+eksctl get clusters
+
+2. delete cluster
+
+eksctl delete cluster <clusterName>
+
+
+step3:
+create and associate IAM OIDC provider for eks cluster
+eksctl utils associate-iam-oidc-provider --region us-east-1 --cluster eks-demo1 --approve
+
+
+step4: 
+create ec2 ssh key pair in us-east-1  as kube-demo
+
+step5:
+create node group with additional add on in public subnets
+
+# Create Public Node Group   
+eksctl create nodegroup --cluster=eksdemo1 `
+                       --region=us-east-1 `
+                       --name=eksdemo1-ng-public1 `
+                       --node-type=t2.micro `
+                       --nodes=2 `
+                       --nodes-min=2 `
+                       --nodes-max=4 `
+                       --node-volume-size=20 `
+                       --ssh-access `
+                       --ssh-public-key=kube-demo `
+                       --managed `
+                       --asg-access `
+                       --external-dns-access `
+                       --full-ecr-access `
+                       --appmesh-access `
+                       --alb-ingress-access 
+step6:
+make sure rolling back all manual changes.  like in furture we need to add CSI 
+delete nodegroup
+eksctl delete nodegroup --cluster=eksdemo1 --name=eksdemo1-ng-public1
+
+delete cluster
+eksctl delete cluster <clusterName>
+
+delete IAM OIDC
