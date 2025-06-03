@@ -1,0 +1,95 @@
+Kubernetes Architecture (Advanced) — ASCII Diagram
+===================================================
+
+                  +------------------------------------------------------+
+                  |                  Control Plane (Master)              |
+                  +------------------------------------------------------+
+                  |                                                      |
+                  |  +---------------------+                             |
+                  |  |  API Server         |<---> kubectl (HTTPS/REST)    |
+                  |  |---------------------|                             |
+                  |  |  Protocol: HTTPS    |                             |
+                  |  +----------|----------+                             |
+                  |             |                                        |
+                  |             v                                        |
+                  |  +---------------------+                             |
+                  |  |  etcd               |                             |
+                  |  |---------------------|                             |
+                  |  |  Protocol: gRPC     |                             |
+                  |  +---------------------+                             |
+                  |             |                                        |
+                  |             v                                        |
+                  |  +---------------------+                             |
+                  |  |  Scheduler          |                             |
+                  |  |---------------------|                             |
+                  |  |  N/A (intra-CP)     |                             |
+                  |  +---------------------+                             |
+                  |             |                                        |
+                  |             v                                        |
+                  |  +---------------------+                             |
+                  |  |  Controller Manager |                             |
+                  |  |---------------------|                             |
+                  |  |  Node, ReplicaSet,  |                             |
+                  |  |  Endpoint, etc.     |                             |
+                  |  +---------------------+                             |
+                  |             |                                        |
+                  |             v                                        |
+                  |  +---------------------+                             |
+                  |  |  Admission          |                             |
+                  |  |  Controllers        |                             |
+                  |  +---------------------+                             |
+                  |             |                                        |
+                  |             v                                        |
+                  |  +---------------------+                             |
+                  |  |  Cloud Controller   |                             |
+                  |  |  Manager (Optional) |                             |
+                  |  +---------------------+                             |
+                  +------------------------------------------------------+
+                                |
+                                | HTTPS (API Server <-> Nodes)
+                                v
++----------------------------------------------------------------------+
+|                        Worker Node(s)                                |
++----------------------------------------------------------------------+
+|  +--------------------+                                             |
+|  | kubelet            |                                             |
+|  |--------------------|                                             |
+|  | HTTPS (API Server) |                                             |
+|  +--------------------+                                             |
+|           |                                                       |
+|           v                                                       |
+|  +--------------------+      +--------------------+               |
+|  | container runtime  |<---->|  Pod(s)            |               |
+|  | (containerd, CRI-O)|      |--------------------|               |
+|  |--------------------|      |                    |               |
+|  | Protocol: CRI      |      +--------------------+               |
+|  +--------------------+                                             |
+|           |                                                       |
+|           v                                                       |
+|  +--------------------+                                           |
+|  | kube-proxy         |                                           |
+|  |--------------------|                                           |
+|  | iptables/IPVS      |                                           |
+|  +--------------------+                                           |
+|           |                                                       |
+|           v                                                       |
+|  +--------------------+                                           |
+|  | CNI Plugin         |                                           |
+|  |--------------------|                                           |
+|  | Flannel, Calico,   |                                           |
+|  | Weave, etc.        |                                           |
+|  | VxLAN, BGP, etc.   |                                           |
+|  +--------------------+                                           |
++----------------------------------------------------------------------+
+
+LEGEND:
+- API Server: Central point of communication (HTTPS/REST).
+- etcd: Stores cluster state (gRPC).
+- Scheduler: Assigns Pods to Nodes.
+- Controller Manager: Runs various controllers.
+- Admission Controllers: Validate/mutate API requests.
+- Cloud Controller Manager: Cloud integrations (optional).
+- kubelet: Node agent, communicates with API Server (HTTPS).
+- container runtime: containerd, CRI-O, Docker (CRI protocol).
+- kube-proxy: Handles service networking (iptables/IPVS).
+- CNI Plugin: Provides Pod networking (Flannel, Calico, etc.).
