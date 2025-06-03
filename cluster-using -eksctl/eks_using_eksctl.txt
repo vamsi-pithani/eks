@@ -1,3 +1,4 @@
+On windows:
 step1 :
 
  1. install eksctcl
@@ -6,6 +7,7 @@ step1 :
  3. install kubectl
 
 aws configure (get security credentials from IAM user)
+
  
 verify login by checking default vpc used by ec2 in default region using aws ec2 describe-vpcs
 
